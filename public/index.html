@@ -1,1 +1,338 @@
-x
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArbKit — Live Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#f0f6ff;--surface:#ffffff;--surface2:#f5f9ff;--surface3:#eaf2ff;
+    --border:#d4e4f7;--border2:#c0d8f5;--green:#00b96b;--green-light:#e6f9f1;
+    --green-border:#b3ecd6;--green-text:#007a47;--red:#e53e3e;
+    --red-light:#fff0f0;--red-border:#fdb8b8;--yellow:#d97706;
+    --yellow-light:#fffbeb;--yellow-border:#fde68a;--accent:#3b82f6;
+    --accent2:#1d4ed8;--text:#1e293b;--text2:#475569;--text3:#94a3b8;
+    --shadow:0 2px 12px rgba(59,130,246,0.08);
+    --shadow-lg:0 8px 30px rgba(59,130,246,0.13);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:'Nunito',sans-serif;min-height:100vh}
+  body::before{content:'';position:fixed;top:0;left:0;right:0;height:200px;background:linear-gradient(160deg,#dbeafe 0%,#eff6ff 60%,#f0f6ff 100%);pointer-events:none;z-index:0}
+  .app{position:relative;z-index:1;max-width:520px;margin:0 auto;padding:0 14px 80px}
+  .nav{display:flex;align-items:center;justify-content:space-between;padding:20px 0 16px;margin-bottom:14px;animation:fadeDown 0.5s ease}
+  .nav-brand{display:flex;align-items:center;gap:10px}
+  .brand-logo{width:36px;height:36px;background:linear-gradient(135deg,#3b82f6,#06b6d4);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 4px 12px rgba(59,130,246,0.3)}
+  .brand-name{font-size:20px;font-weight:900;letter-spacing:-0.5px}
+  .brand-tag{font-size:9px;font-weight:800;color:var(--green-text);background:var(--green-light);border:1px solid var(--green-border);padding:2px 8px;border-radius:99px;letter-spacing:1.5px;text-transform:uppercase}
+  .nav-right{display:flex;align-items:center;gap:8px}
+  .credits-badge{display:flex;align-items:center;gap:5px;padding:6px 11px;background:var(--surface);border:1px solid var(--border);border-radius:99px;font-size:11px;font-weight:700;color:var(--text2);font-family:'JetBrains Mono',monospace;box-shadow:var(--shadow)}
+  .credits-dot{width:6px;height:6px;border-radius:50%;background:var(--yellow)}
+  .live-pill{display:flex;align-items:center;gap:5px;background:var(--green-light);border:1px solid var(--green-border);padding:6px 11px;border-radius:99px;font-size:10px;font-weight:800;color:var(--green-text);letter-spacing:1px;text-transform:uppercase}
+  .live-pulse{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.7)}}
+  .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;animation:fadeUp 0.5s ease 0.1s both}
+  .stat-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px 10px;text-align:center;box-shadow:var(--shadow)}
+  .stat-val{font-size:24px;font-weight:900;font-family:'JetBrains Mono',monospace;letter-spacing:-1px;margin-bottom:4px}
+  .stat-val.green{color:var(--green)}.stat-val.blue{color:var(--accent)}.stat-val.yel{color:var(--yellow)}
+  .stat-label{font-size:9px;color:var(--text3);font-weight:700;letter-spacing:1px;text-transform:uppercase}
+  .sport-tabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;animation:fadeUp 0.5s ease 0.15s both}
+  .sport-tabs::-webkit-scrollbar{display:none}
+  .sport-tab{flex-shrink:0;padding:8px 15px;border-radius:99px;border:1.5px solid var(--border);background:var(--surface);color:var(--text3);font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;cursor:pointer;transition:all 0.2s;white-space:nowrap;box-shadow:var(--shadow)}
+  .sport-tab.active{background:var(--accent);border-color:var(--accent);color:white;box-shadow:0 4px 12px rgba(59,130,246,0.3)}
+  .sport-tab:hover:not(.active){border-color:var(--accent);color:var(--accent)}
+  .filter-bar{display:flex;gap:8px;margin-bottom:16px;animation:fadeUp 0.5s ease 0.2s both}
+  .filter-select{flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:10px 13px;color:var(--text2);font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;box-shadow:var(--shadow);-webkit-appearance:none}
+  .filter-select:focus{outline:none;border-color:var(--accent)}
+  .refresh-btn{padding:10px 15px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;color:var(--text2);font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:6px;white-space:nowrap;box-shadow:var(--shadow)}
+  .refresh-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .refresh-btn.spinning .ri{animation:spin 0.8s linear infinite;display:inline-block}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .section-title{font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--text3)}
+  .section-count{font-size:11px;padding:3px 10px;border-radius:99px;font-family:'JetBrains Mono',monospace;font-weight:700}
+  .count-green{background:var(--green-light);color:var(--green-text);border:1px solid var(--green-border)}
+  .count-grey{background:var(--surface3);color:var(--text3);border:1px solid var(--border)}
+</style>
+<style>
+  .match-card{background:var(--surface);border:1.5px solid var(--border);border-radius:20px;margin-bottom:10px;overflow:hidden;box-shadow:var(--shadow);animation:fadeUp 0.35s ease;transition:box-shadow 0.2s}
+  .match-card.is-arb{border-color:var(--green-border);background:#fafffd;box-shadow:0 4px 20px rgba(0,185,107,0.12)}
+  .arb-banner{background:linear-gradient(90deg,var(--green-light),#f0fdf8);border-bottom:1px solid var(--green-border);padding:8px 15px;display:flex;align-items:center;justify-content:space-between}
+  .arb-banner-left{font-size:11px;font-weight:800;color:var(--green-text);text-transform:uppercase;letter-spacing:0.5px}
+  .arb-banner-right{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--green-text);background:var(--green-light);border:1px solid var(--green-border);padding:2px 10px;border-radius:99px}
+  .match-body{padding:15px}
+  .match-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .match-league{font-size:10px;font-weight:800;color:var(--text3);letter-spacing:1px;text-transform:uppercase}
+  .match-time{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--text3);background:var(--surface2);padding:3px 9px;border-radius:6px;border:1px solid var(--border)}
+  .match-teams{font-size:15px;font-weight:900;color:var(--text);margin-bottom:12px;letter-spacing:-0.3px;line-height:1.3}
+  .outcomes-grid{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+  .outcome-row{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--surface2);border-radius:11px;border:1px solid var(--border)}
+  .outcome-row.best{background:var(--green-light);border-color:var(--green-border)}
+  .outcome-num{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;flex-shrink:0}
+  .num-1{background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe}
+  .num-2{background:var(--green-light);color:var(--green-text);border:1px solid var(--green-border)}
+  .num-3{background:var(--yellow-light);color:var(--yellow);border:1px solid var(--yellow-border)}
+  .outcome-name{flex:1;font-size:12px;font-weight:700;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .outcome-book{font-size:10px;color:var(--text3);font-weight:700;background:var(--surface);border:1px solid var(--border);padding:2px 7px;border-radius:5px;white-space:nowrap}
+  .outcome-odds{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--text);flex-shrink:0}
+  .outcome-row.best .outcome-odds{color:var(--green-text)}
+  .stake-suggest{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:11px 13px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+  .stake-suggest-label{font-size:11px;color:var(--text3);font-weight:700}
+  .stake-suggest-input{display:flex;align-items:center;gap:6px}
+  .stake-mini-input{background:var(--surface);border:1.5px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;width:100px;text-align:right}
+  .stake-mini-input:focus{outline:none;border-color:var(--accent)}
+  .calc-mini-btn{padding:6px 14px;background:var(--accent);border:none;border-radius:8px;color:white;font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 8px rgba(59,130,246,0.3)}
+  .calc-mini-btn:hover{background:var(--accent2)}
+  .mini-result{display:none;margin-top:8px;background:var(--green-light);border:1px solid var(--green-border);border-radius:12px;padding:12px 13px}
+  .mini-result-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px}
+  .mini-result-label{color:var(--text3);font-weight:600}
+  .mini-result-val{font-family:'JetBrains Mono',monospace;color:var(--text);font-weight:600}
+  .mini-result-profit{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--green-border)}
+  .mini-profit-label{font-size:13px;font-weight:800;color:var(--green-text)}
+  .mini-profit-val{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:var(--green-text)}
+  .loading-wrap{text-align:center;padding:60px 20px;animation:fadeUp 0.4s ease}
+  .loading-spinner{width:48px;height:48px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px}
+  .loading-text{font-size:15px;font-weight:700;color:var(--text2);margin-bottom:6px}
+  .loading-sub{font-size:12px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+  .empty-state{text-align:center;padding:50px 20px;background:var(--surface);border-radius:20px;border:1.5px solid var(--border);box-shadow:var(--shadow)}
+  .empty-icon{font-size:44px;margin-bottom:12px}
+  .empty-text{font-size:16px;font-weight:800;color:var(--text2);margin-bottom:8px}
+  .empty-sub{font-size:13px;color:var(--text3);line-height:1.6}
+  .error-state{background:var(--red-light);border:1.5px solid var(--red-border);border-radius:20px;padding:24px 20px;text-align:center;box-shadow:var(--shadow)}
+  .error-icon{font-size:32px;margin-bottom:10px}
+  .error-text{font-size:15px;font-weight:800;color:var(--red);margin-bottom:6px}
+  .error-sub{font-size:12px;color:var(--text3);line-height:1.6}
+  .divider{display:flex;align-items:center;gap:10px;margin:18px 0 12px}
+  .divider-line{flex:1;height:1px;background:var(--border)}
+  .divider-text{font-size:10px;color:var(--text3);font-weight:700;letter-spacing:1px;text-transform:uppercase;white-space:nowrap}
+  .footer-strip{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,0.95);backdrop-filter:blur(10px);border-top:1px solid var(--border);padding:10px 18px;display:flex;align-items:center;justify-content:space-between;z-index:50;box-shadow:0 -4px 20px rgba(59,130,246,0.07)}
+  .footer-brand{font-size:12px;font-weight:800;color:var(--text3)}
+  .auto-refresh-toggle{display:flex;align-items:center;gap:8px;cursor:pointer}
+  .next-refresh-text{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text3)}
+  .toggle-switch{width:34px;height:20px;background:var(--border2);border-radius:99px;position:relative;transition:background 0.2s;cursor:pointer;flex-shrink:0}
+  .toggle-switch.on{background:var(--green)}
+  .toggle-knob{position:absolute;width:14px;height:14px;background:white;border-radius:50%;top:3px;left:3px;transition:left 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.15)}
+  .toggle-switch.on .toggle-knob{left:17px}
+  @keyframes fadeDown{from{toopacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+  input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+  input[type=number]{-moz-appearance:textfield}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="nav">
+    <div class="nav-brand">
+      <div class="brand-logo">⚡</div>
+      <span class="brand-name">ArbKit</span>
+      <span class="brand-tag">Live</span>
+    </div>
+    <div class="nav-right">
+      <div class="credits-badge"><div class="credits-dot"></div><span id="creditsLeft">—</span> left</div>
+      <div class="live-pill"><div class="live-pulse"></div>Live</div>
+    </div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-val green" id="statArbs">—</div><div class="stat-label">Arbs Found</div></div>
+    <div class="stat-box"><div class="stat-val blue" id="statMatches">—</div><div class="stat-label">Matches</div></div>
+    <div class="stat-box"><div class="stat-val yel" id="statBestMargin">—</div><div class="stat-label">Best Margin</div></div>
+  </div>
+  <div class="sport-tabs">
+    <button class="sport-tab active" onclick="setSport('soccer_epl','⚽','EPL',this)">⚽ EPL</button>
+    <button class="sport-tab" onclick="setSport('tennis_atp_french_open','🎾','Tennis',this)">🎾 Tennis</button>
+    <button class="sport-tab" onclick="setSport('basketball_nba','🏀','NBA',this)">🏀 NBA</button>
+    <button class="sport-tab" onclick="setSport('soccer_spain_la_liga','🇪🇸','La Liga',this)">🇪🇸 La Liga</button>
+    <button class="sport-tab" onclick="setSport('soccer_uefa_champs_league','🏆','UCL',this)">🏆 UCL</button>
+  </div>
+  <div class="filter-bar">
+    <select class="filter-select" id="filterSelect" onchange="applyFilter()">
+      <option value="all">All Matches</option>
+      <option value="arb">🎯 Arbs Only</option>
+      <option value="high">🔥 High Margin (&gt;2%)</option>
+    </select>
+    <button class="refresh-btn" id="refreshBtn" onclick="fetchOdds()">
+      <span class="ri">↻</span> Refresh
+    </button>
+  </div>
+  <div id="contentArea"></div>
+  <div style="height:50px;"></div>
+</div>
+<div class="footer-strip">
+  <div class="footer-brand">⚡ ArbKit</div>
+  <div class="auto-refresh-toggle" onclick="toggleAutoRefresh()">
+    <span class="next-refresh-text" id="nextRefreshText">Auto-refresh: OFF</span>
+    <div class="toggle-switch" id="autoToggle"><div class="toggle-knob"></div></div>
+  </div>
+</div> <script>
+  let currentSport='soccer_epl',currentEmoji='⚽',currentLabel='EPL';
+  let allMatches=[],autoOn=false,countdown=60,countdownTimer=null;
+
+  function setSport(key,emoji,label,el){
+    currentSport=key;currentEmoji=emoji;currentLabel=label;
+    document.querySelectorAll('.sport-tab').forEach(b=>b.classList.remove('active'));
+    el.classList.add('active');fetchOdds();
+  }
+
+  async function fetchOdds(){
+    setLoading();
+    document.getElementById('refreshBtn').classList.add('spinning');
+    try{
+      const res=await fetch(`/api/odds/${currentSport}`);
+      const data=await res.json();
+      if(data.message){showError(data.message);return;}
+      allMatches=Array.isArray(data)?data:[];
+      document.getElementById('creditsLeft').textContent=allMatches.length>0?'✓ OK':'—';
+      renderMatches(allMatches);
+    }catch(e){
+      showError('Could not reach server. Make sure the app is running.');
+    }finally{
+      document.getElementById('refreshBtn').classList.remove('spinning');
+    }
+  }
+
+  function applyFilter(){renderMatches(allMatches);}
+
+  function renderMatches(matches){
+    const filter=document.getElementById('filterSelect').value;
+    if(!matches||matches.length===0){showEmpty();return;}
+    const processed=matches.map(processMatch).filter(Boolean);
+    processed.sort((a,b)=>{
+      if(a.isArb&&!b.isArb)return -1;
+      if(!a.isArb&&b.isArb)return 1;
+      return b.margin-a.margin;
+    });
+    let filtered=processed;
+    if(filter==='arb')filtered=processed.filter(m=>m.isArb);
+    if(filter==='high')filtered=processed.filter(m=>m.isArb&&m.margin>2);
+    const arbCount=processed.filter(m=>m.isArb).length;
+    const bestMargin=processed.filter(m=>m.isArb).reduce((b,m)=>Math.max(b,m.margin),0);
+    document.getElementById('statArbs').textContent=arbCount;
+    document.getElementById('statMatches').textContent=processed.length;
+    document.getElementById('statBestMargin').textContent=arbCount>0?bestMargin.toFixed(1)+'%':'—';
+    if(filtered.length===0){showEmpty(filter!=='all');return;}
+    const arbs=filtered.filter(m=>m.isArb);
+    const nonArbs=filtered.filter(m=>!m.isArb);
+    let html='';
+    if(arbs.length>0){
+      html+=`<div class="section-header"><div class="section-title">🎯 Arb Opportunities</div><span class="section-count count-green">${arbs.length} found</span></div>`;
+      html+=arbs.map(buildCard).join('');
+    }else if(filter==='all'){
+      html+=`<div class="empty-state" style="margin-bottom:14px;"><div class="empty-icon">🔍</div><div class="empty-text">No arbs right now</div><div class="empty-sub">Markets look efficient.<br>Try refreshing or switch sport.</div></div>`;
+    }
+    if(nonArbs.length>0&&filter==='all'){
+      html+=`<div class="divider"><div class="divider-line"></div><div class="divider-text">All Matches</div><div class="divider-line"></div></div>`;
+      html+=`<div class="section-header"><div class="section-title">📋 Other Matches</div><span class="section-count count-grey">${nonArbs.length}</span></div>`;
+      html+=nonArbs.map(buildCard).join('');
+    }
+    document.getElementById('contentArea').innerHTML=html;
+  }
+
+  function processMatch(match){
+    if(!match.bookmakers||match.bookmakers.length===0)return null;
+    const isFootball=currentSport.includes('soccer');
+    const names=isFootball?[match.home_team,'Draw',match.away_team]:[match.home_team,match.away_team];
+    const best=names.map(name=>{
+      let top={odds:0,book:''};
+      match.bookmakers.forEach(bk=>{
+        const mkt=bk.markets.find(m=>m.key==='h2h');
+        if(!mkt)return;
+        const out=mkt.outcomes.find(o=>o.name===name);
+        if(out&&out.price>top.odds)top={odds:out.price,book:shortBook(bk.key)};
+      });
+      return{name,...top};
+    }).filter(o=>o.odds>1);
+    if(best.length<2)return null;
+    const impliedSum=best.reduce((s,o)=>s+1/o.odds,0);
+    const isArb=impliedSum<1;
+    const margin=Math.abs(1-impliedSum)*100;
+    const d=new Date(match.commence_time);
+    const diffH=Math.round((d-Date.now())/36e5);
+    const time=diffH<0?'Starting Soon':diffH<24?`In ${diffH}h`:d.toLocaleDateString('en-NG',{month:'short',day:'numeric'});
+    return{id:match.id,home:match.home_team,away:match.away_team,time,outcomes:best,isArb,margin:parseFloat(margin.toFixed(2))};
+  }
+
+  function buildCard(m){
+    const numCls=['num-1','num-2','num-3'];
+    const oddsArr=JSON.stringify(m.outcomes.map(o=>o.odds));
+    const namesArr=JSON.stringify(m.outcomes.map(o=>o.name));
+    const outcomesHTML=m.outcomes.map((o,i)=>`
+      <div class="outcome-row${m.isArb?' best':''}">
+        <div class="outcome-num ${numCls[i]}">${i+1}</div>
+        <div class="outcome-name">${o.name}</div>
+        <div class="outcome-book">${o.book}</div>
+        <div class="outcome-odds">${o.odds.toFixed(2)}</div>
+      </div>`).join('');
+    const banner=m.isArb?`<div class="arb-banner"><div class="arb-banner-left">🎯 ARB FOUND</div><div class="arb-banner-right">+${m.margin}% margin</div></div>`:'';
+    const stake=m.isArb?`
+      <div class="stake-suggest">
+        <div class="stake-suggest-label">💰 Enter stake (₦)</div>
+        <div class="stake-suggest-input">
+          <input class="stake-mini-input" type="number" id="stake_${m.id}" value="10000">
+          <button class="calc-mini-btn" onclick="calcMini('${m.id}',${oddsArr},${namesArr})">Calc</button>
+        </div>
+      </div>
+      <div class="mini-result" id="result_${m.id}"></div>`:'';
+    return `<div class="match-card${m.isArb?' is-arb':''}">
+      ${banner}
+      <div class="match-body">
+        <div class="match-meta">
+          <div class="match-league">${currentEmoji} ${currentLabel}</div>
+          <div class="match-time">${m.time}</div>
+        </div>
+        <div class="match-teams">${m.home} vs ${m.away}</div>
+        <div class="outcomes-grid">${outcomesHTML}</div>
+        ${stake}
+      </div>
+    </div>`;
+  }
+
+  function calcMini(id,oddsArr,names){
+    const stake=parseFloat(document.getElementById('stake_'+id).value);
+    if(!stake||stake<100){alert('Enter a valid stake (min ₦100)');return;}
+    const res=document.getElementById('result_'+id);
+    const impliedSum=oddsArr.reduce((s,o)=>s+1/o,0);
+    const stakes=oddsArr.map(o=>(stake*(1/o))/impliedSum);
+    const profit=stake/impliedSum-stake;
+    const rows=stakes.map((s,i)=>`<div class="mini-result-row"><span class="mini-result-label">${names[i]}</span><span class="mini-result-val">₦${Math.round(s).toLocaleString()}</span></div>`).join('');
+    res.innerHTML=`${rows}<div class="mini-result-profit"><span class="mini-profit-label">🎯 Guaranteed Profit</span><span class="mini-profit-val">₦${Math.round(profit).toLocaleString()}</span></div>`;
+    res.style.display='block';
+  }
+
+  function shortBook(key){
+    const map={bet365:'Bet365',betway:'Betway',williamhill:'W.Hill',paddypower:'Paddy',betfair:'Betfair',unibet:'Unibet',draftkings:'DraftK',fanduel:'FanDuel',betmgm:'BetMGM',pinnacle:'Pinnacle',marathonbet:'Marathon',ladbrokes:'Ladbrk',coral:'Coral',skybet:'SkyBet',sport888:'888Sport',matchbook:'Matchbk',betvictor:'BetVic',bovada:'Bovada'};
+    return map[key]||key.replace(/_/g,' ').slice(0,9);
+  }
+
+  function setLoading(){
+    document.getElementById('contentArea').innerHTML=`<div class="loading-wrap"><div class="loading-spinner"></div><div class="loading-text">Scanning ${currentLabel} odds...</div><div class="loading-sub">Comparing bookmakers · Finding arbs</div></div>`;
+    ['statArbs','statMatches','statBestMargin'].forEach(id=>document.getElementById(id).textContent='—');
+  }
+
+  function showError(msg){
+    document.getElementById('contentArea').innerHTML=`<div class="error-state"><div class="error-icon">⚠️</div><div class="error-text">Could not load odds</div><div class="error-sub">${msg}<br><br>Try Tennis or NBA tab.</div></div>`;
+  }
+
+  function showEmpty(noArbs=false){
+    document.getElementById('contentArea').innerHTML=`<div class="empty-state"><div class="empty-icon">${noArbs?'🔍':'📭'}</div><div class="empty-text">${noArbs?'No arbs found':'No matches available'}</div><div class="empty-sub">${noArbs?'No opportunities right now.<br>Try refreshing or switch sport.':'No upcoming matches.<br>Try another tab.'}</div></div>`;
+  }
+
+  function toggleAutoRefresh(){
+    autoOn=!autoOn;
+    document.getElementById('autoToggle').classList.toggle('on',autoOn);
+    if(autoOn){
+      countdown=60;clearInterval(countdownTimer);
+      countdownTimer=setInterval(()=>{
+        countdown--;
+        document.getElementById('nextRefreshText').textContent=`Refreshing in ${countdown}s`;
+        if(countdown<=0){countdown=60;fetchOdds();}
+      },1000);
+    }else{
+      clearInterval(countdownTimer);
+      document.getElementById('nextRefreshText').textContent='Auto-refresh: OFF';
+    }
+  }
+
+  fetchOdds();
+</script>
+</body>
+</html>
